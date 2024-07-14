@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>일본어 경어 4지 선다형 카드 게임</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        #game-container {
+            text-align: center;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 100%;
+        }
+        #card {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        #question {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        #options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .option {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .option:hover {
+            background-color: #f0f0f0;
+        }
+        .correct {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+        .incorrect {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        #next {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            display: none;
+        }
+        #score {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div id="score">정답: <span id="correct">0</span> | 오답: <span id="incorrect">0</span></div>
+    <div id="game-container">
+        <div id="card">
+            <div id="question"></div>
+            <div id="options"></div>
+        </div>
+        <button id="next">다음 문제</button>
+    </div>
+
+    <script>
+        const honorifics = [
+            { q: "말씀하다", a: "おっしゃる" },
+            { q: "먹다/마시다", a: "召し上がる (めしあがる)" },
+            { q: "보다", a: "ご覧になる (ごらんになる)" },
+            { q: "알다", a: "ご存じだ (ごぞんじだ)" },
+            { q: "주다", a: "差し上げる (さしあげる)" },
+            { q: "오다", a: "いらっしゃる" },
+            { q: "하다", a: "なさる" },
+            { q: "있다", a: "いらっしゃる" },
+            { q: "가다", a: "いらっしゃる" },
+            { q: "받다", a: "頂く (いただく)" },
+            { q: "말하다", a: "申し上げる (もうしあげる)" },
+            { q: "만나다", a: "お目にかかる (おめにかかる)" },
+            { q: "듣다", a: "伺う (うかがう)" },
+            { q: "가다", a: "参る (まいる)" },
+            { q: "보다", a: "拝見する (はいけんする)" },
+            { q: "주다", a: "差し上げる (さしあげる)" },
+            { q: "받다", a: "頂く (いただく)" },
+            { q: "있다", a: "おる" },
+            { q: "오다", a: "参る (まいる)" },
+            { q: "알다", a: "存じる (ぞんじる)" }
+        ];
+
+        let currentIndex = 0;
+        let correctCount = 0;
+        let incorrectCount = 0;
+
+        const questionEl = document.getElementById('question');
+        const optionsEl = document.getElementById('options');
+        const nextBtn = document.getElementById('next');
+        const correctEl = document.getElementById('correct');
+        const incorrectEl = document.getElementById('incorrect');
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function getRandomOptions(correctAnswer) {
+            const options = [correctAnswer];
+            const availableOptions = honorifics.filter(item => item.a !== correctAnswer).map(item => item.a);
+            shuffleArray(availableOptions);
+            options.push(...availableOptions.slice(0, 3));
+            shuffleArray(options);
+            return options;
+        }
+
+        function showQuestion() {
+            const currentQuestion = honorifics[currentIndex];
+            questionEl.textContent = currentQuestion.q;
+            const options = getRandomOptions(currentQuestion.a);
+            optionsEl.innerHTML = '';
+            options.forEach(option => {
+                const button = document.createElement('button');
+                button.className = 'option';
+                button.textContent = option;
+                button.addEventListener('click', () => checkAnswer(option));
+                optionsEl.appendChild(button);
+            });
+            nextBtn.style.display = 'none';
+        }
+
+        function checkAnswer(selectedAnswer) {
+            const correctAnswer = honorifics[currentIndex].a;
+            const options = optionsEl.children;
+            for (let option of options) {
+                option.disabled = true;
+                if (option.textContent === correctAnswer) {
+                    option.classList.add('correct');
+                } else if (option.textContent === selectedAnswer && selectedAnswer !== correctAnswer) {
+                    option.classList.add('incorrect');
+                }
+            }
+            if (selectedAnswer === correctAnswer) {
+                correctCount++;
+                correctEl.textContent = correctCount;
+            } else {
+                incorrectCount++;
+                incorrectEl.textContent = incorrectCount;
+            }
+            nextBtn.style.display = 'inline-block';
+        }
+
+        nextBtn.addEventListener('click', () => {
+            currentIndex++;
+            if (currentIndex >= honorifics.length) {
+                currentIndex = 0;
+                shuffleArray(honorifics);
+            }
+            showQuestion();
+        });
+
+        shuffleArray(honorifics);
+        showQuestion();
+    </script>
+</body>
+</html>
